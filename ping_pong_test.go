@@ -1,14 +1,19 @@
 package main
 
 import (
+	"bytes"
+	"os/exec"
 	"testing"
-
-	"github.com/rendon/testcli"
 )
 
 func TestMain(t *testing.T) {
-	testcli.Run("./mega-midi-ping-pong")
-	if !testcli.Success() {
-		t.Fatalf("Expected to succeed, but failed: %s", testcli.Error())
+
+	cmd := exec.Command("go", "run", ".")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+	err := cmd.Run()
+	if err != nil {
+		t.Fatalf("Expected to succeed, but failed: %s %s", err, out.String())
 	}
 }
