@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"gitlab.com/gomidi/midi/mid"
-	"gitlab.com/gomidi/portmididrv"
+	driver "gitlab.com/gomidi/rtmididrv"
 )
 
 func main() {
-	drv, err := portmididrv.New()
+	drv, err := driver.New()
 	exitOnError(err)
 	defer drv.Close()
 
@@ -24,6 +25,33 @@ func main() {
 		printOutPorts(outs)
 		return
 	}
+
+	if len(os.Args) == 3 {
+		portInNum, err := strconv.Atoi(os.Args[1])
+		exitOnError(err)
+		portOutNum, err := strconv.Atoi(os.Args[2])
+		exitOnError(err)
+		pingPong(ins[portInNum], outs[portOutNum])
+		return
+	}
+}
+
+func pingPong(in mid.In, out mid.Out) {
+	fmt.Printf("In: %s\n", in.String())
+	fmt.Printf("Out: %s\n", out.String())
+
+	pingSysEx := []byte{0x00, 0x22, 0x77, 0x01}
+
+	err := out.Open()
+	exitOnError(err)
+	defer out.Close()
+	err = in.Open()
+	exitOnError(err)
+	defer in.Close()
+
+	wr := mid.ConnectOut(out)
+	err = wr.SysEx(pingSysEx)
+	exitOnError(err)
 }
 
 func exitOnError(err error) {
