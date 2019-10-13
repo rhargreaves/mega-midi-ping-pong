@@ -9,32 +9,27 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello, World!")
-
 	drv, err := portmididrv.New()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// make sure to close all open ports at the end
+	exitOnError(err)
 	defer drv.Close()
 
 	ins, err := drv.Ins()
-	if err != nil {
-		panic(err.Error())
-	}
+	exitOnError(err)
 
 	outs, err := drv.Outs()
-	if err != nil {
-		panic(err.Error())
-	}
+	exitOnError(err)
 
 	if len(os.Args) == 2 && os.Args[1] == "list" {
 		printInPorts(ins)
 		printOutPorts(outs)
 		return
 	}
+}
 
+func exitOnError(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func printPort(port mid.Port) {
