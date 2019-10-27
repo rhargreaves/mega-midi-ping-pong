@@ -11,5 +11,6 @@ run:
 deps:
 	go get github.com/rakyll/portmidi
 	go get github.com/bradhe/stopwatch
+	go get github.com/wcharczuk/go-chart
 
 .PHONY: all test run deps

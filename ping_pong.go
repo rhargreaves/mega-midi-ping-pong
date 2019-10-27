@@ -9,6 +9,7 @@ import (
 
 	"github.com/bradhe/stopwatch"
 	"github.com/rakyll/portmidi"
+	"github.com/wcharczuk/go-chart"
 )
 
 func main() {
@@ -54,11 +55,19 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 	defer out.Close()
 
 	pingSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
-	for {
+
+	var times []float64
+	var durations []float64
+
+	startTime := time.Now()
+
+	for time.Now().Sub(startTime) < time.Second*30 {
+
 		watch := stopwatch.Start()
 		err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
 		exitOnError(err)
-		fmt.Printf("%v: Ping? ", time.Now().Format(time.RFC3339Nano))
+		duration := time.Now().Sub(startTime)
+		fmt.Printf("%v: Ping? ", duration)
 		waitForEvent(in)
 		event, err := in.ReadSysExBytes(6)
 		exitOnError(err)
@@ -68,12 +77,38 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		if res == 0 {
 			watch.Stop()
 			fmt.Printf("Pong! (%v)\n", watch.String())
+
+			times = append(times, float64(duration.Seconds()))
+			durations = append(durations, float64(watch.Milliseconds()))
+
 		} else {
 			fmt.Printf("Mismatch! %02x\n", event)
 		}
 
-		time.Sleep(time.Millisecond * 200)
+		time.Sleep(time.Millisecond * 20)
 	}
+
+	graph := chart.Chart{
+		XAxis: chart.XAxis{
+			ValueFormatter: func(v interface{}) string {
+				if vf, isFloat := v.(float64); isFloat {
+					return fmt.Sprintf("%0.2f", vf)
+				}
+				return ""
+			},
+		},
+		Series: []chart.Series{
+			chart.ContinuousSeries{
+				XValues: times,
+				YValues: durations,
+			},
+		},
+	}
+
+	f, _ := os.Create("output.png")
+	defer f.Close()
+	err = graph.Render(chart.PNG, f)
+	exitOnError(err)
 }
 
 func waitForEvent(stream *portmidi.Stream) {
