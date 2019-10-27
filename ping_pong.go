@@ -25,7 +25,9 @@ func main() {
 		portOutNum, err := strconv.Atoi(os.Args[2])
 		exitOnError(err)
 		pingPong(portmidi.DeviceID(portInNum),
-			portmidi.DeviceID(portOutNum))
+			portmidi.DeviceID(portOutNum),
+			"v0.1.0 - UI",
+			"results/output.png")
 		return
 	}
 }
@@ -41,7 +43,11 @@ func listDevices() {
 	}
 }
 
-func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
+func pingPong(inID portmidi.DeviceID,
+	outID portmidi.DeviceID,
+	graphTitle string,
+	graphFileName string) {
+
 	fmt.Printf("In: %v\n", portmidi.Info(inID).Name)
 	fmt.Printf("Out: %v\n", portmidi.Info(outID).Name)
 
@@ -87,8 +93,17 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		time.Sleep(time.Millisecond * 20)
 	}
 
+	saveGraph(times, durations, graphTitle, graphFileName)
+}
+
+func saveGraph(
+	times []float64,
+	durations []float64,
+	graphTitle string,
+	graphFileName string) {
+
 	graph := chart.Chart{
-		Title: "v0.1.0 - Idle",
+		Title: graphTitle,
 		XAxis: chart.XAxis{
 			ValueFormatter: func(v interface{}) string {
 				if vf, isFloat := v.(float64); isFloat {
@@ -109,9 +124,9 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		},
 	}
 
-	f, _ := os.Create("output.png")
+	f, _ := os.Create(graphFileName)
 	defer f.Close()
-	err = graph.Render(chart.PNG, f)
+	err := graph.Render(chart.PNG, f)
 	exitOnError(err)
 }
 
