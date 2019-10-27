@@ -60,6 +60,7 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 			if ready {
 				break
 			}
+			time.Sleep(time.Microsecond)
 		}
 
 		event, err := in.ReadSysExBytes(6)
