@@ -5,24 +5,20 @@ import (
 	"os"
 	"strconv"
 
-	"gitlab.com/gomidi/midi/mid"
-	driver "gitlab.com/gomidi/rtmididrv"
+	"github.com/rakyll/portmidi"
 )
 
 func main() {
-	drv, err := driver.New()
-	exitOnError(err)
-	defer drv.Close()
-
-	ins, err := drv.Ins()
-	exitOnError(err)
-
-	outs, err := drv.Outs()
-	exitOnError(err)
+	portmidi.Initialize()
 
 	if len(os.Args) == 2 && os.Args[1] == "list" {
-		printInPorts(ins)
-		printOutPorts(outs)
+		for id := 0; id < portmidi.CountDevices(); id++ {
+			deviceID := portmidi.DeviceID(id)
+			inf := portmidi.Info(deviceID)
+			fmt.Printf("ID: %d\nName: %s\nInput: %t\nOutput: %t\n",
+				id,
+				inf.Name, inf.IsInputAvailable, inf.IsOutputAvailable)
+		}
 		return
 	}
 
@@ -31,51 +27,38 @@ func main() {
 		exitOnError(err)
 		portOutNum, err := strconv.Atoi(os.Args[2])
 		exitOnError(err)
-		pingPong(ins[portInNum], outs[portOutNum])
+		pingPong(portmidi.DeviceID(portInNum),
+			portmidi.DeviceID(portOutNum))
 		return
 	}
 }
 
-func pingPong(in mid.In, out mid.Out) {
-	fmt.Printf("In: %s\n", in.String())
-	fmt.Printf("Out: %s\n", out.String())
+func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
+	fmt.Printf("In: %v\n", inID)
+	fmt.Printf("Out: %v\n", outID)
 
-	pingSysEx := []byte{0x00, 0x22, 0x77, 0x01}
+	in, err := portmidi.NewInputStream(inID, 1024)
+	exitOnError(err)
 
-	err := out.Open()
+	out, err := portmidi.NewOutputStream(outID, 1024, 0)
 	exitOnError(err)
 	defer out.Close()
-	err = in.Open()
-	exitOnError(err)
-	defer in.Close()
 
-	wr := mid.ConnectOut(out)
-	err = wr.SysEx(pingSysEx)
+	pingSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
+
+	err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
 	exitOnError(err)
+
+	msg, err := in.Read(1024)
+	exitOnError(err)
+
+	for i, b := range msg {
+		fmt.Printf("SysEx message byte %d = %02x\n", i, b)
+	}
 }
 
 func exitOnError(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
-}
-
-func printPort(port mid.Port) {
-	fmt.Printf("[%v] %s\n", port.Number(), port.String())
-}
-
-func printInPorts(ports []mid.In) {
-	fmt.Printf("MIDI IN Ports\n")
-	for _, port := range ports {
-		printPort(port)
-	}
-	fmt.Printf("\n\n")
-}
-
-func printOutPorts(ports []mid.Out) {
-	fmt.Printf("MIDI OUT Ports\n")
-	for _, port := range ports {
-		printPort(port)
-	}
-	fmt.Printf("\n\n")
 }
