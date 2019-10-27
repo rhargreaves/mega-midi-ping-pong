@@ -8,7 +8,7 @@ import (
 
 func TestMain(t *testing.T) {
 
-	cmd := exec.Command("go", "run", ".")
+	cmd := exec.Command("go", "run", ".", "-list")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &out
