@@ -2,9 +2,9 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/rakyll/portmidi"
@@ -14,22 +14,23 @@ import (
 func main() {
 	portmidi.Initialize()
 
-	if len(os.Args) == 2 && os.Args[1] == "list" {
+	inPtr := flag.Uint("in", 0, "In Device ID")
+	outPtr := flag.Uint("out", 0, "Out Device ID")
+	graphTitlePtr := flag.String("graph-title", "", "Graph Title")
+	graphFileNamePtr := flag.String("graph-filename", "results/output.png", "Graph Filename")
+	listPtr := flag.Bool("list", false, "List Devices")
+
+	flag.Parse()
+
+	if *listPtr {
 		listDevices()
 		return
 	}
 
-	if len(os.Args) == 3 {
-		portInNum, err := strconv.Atoi(os.Args[1])
-		exitOnError(err)
-		portOutNum, err := strconv.Atoi(os.Args[2])
-		exitOnError(err)
-		pingPong(portmidi.DeviceID(portInNum),
-			portmidi.DeviceID(portOutNum),
-			"v0.1.0 - UI",
-			"results/output.png")
-		return
-	}
+	pingPong(portmidi.DeviceID(*inPtr),
+		portmidi.DeviceID(*outPtr),
+		*graphTitlePtr,
+		*graphFileNamePtr)
 }
 
 func listDevices() {

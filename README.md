@@ -19,7 +19,7 @@ $ make
 2. List MIDI devices:
 
 ```sh
-$ go run ping_pong.go list
+$ go run ping_pong.go -list
 
 ID: 0   Name: IAC Driver IAC Bus 1      Input: true     Output: false
 ID: 1   Name: IAC Driver IAC Bus 2      Input: true     Output: false
@@ -30,9 +30,9 @@ ID: 3   Name: IAC Driver IAC Bus 2      Input: false    Output: true
 3. Run with correct device IDs specified:
 
 ```sh
-# go run ping_pong.go <input_device> <output_device>
+# go run ping_pong.go -in <input_device> -out <output_device>
 
-$ go run ping_pong.go 0 3
+$ go run ping_pong.go -in 0 -out 3
 
 In: IAC Driver IAC Bus 1
 Out: IAC Driver IAC Bus 2
@@ -46,6 +46,24 @@ Out: IAC Driver IAC Bus 2
 2019-10-27T19:14:45.440896Z: Ping? Pong! (18.86333ms)
 2019-10-27T19:14:45.663128Z: Ping? Pong! (19.8471ms)
 ...
+```
+
+### Help
+
+```sh
+$ go run ping_pong.go -h
+
+Usage of ping_pong:
+  -graph-filename string
+        Graph Filename (default "results/output.png")
+  -graph-title string
+        Graph Title
+  -in uint
+        In Device ID
+  -list
+        List Devices
+  -out uint
+        Out Device ID
 ```
 
 ## Results
