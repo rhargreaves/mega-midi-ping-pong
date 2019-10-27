@@ -52,7 +52,7 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		watch := stopwatch.Start()
 		err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
 		exitOnError(err)
-		fmt.Printf("Ping? ")
+		fmt.Printf("%v: Ping? ", time.Now().Format(time.RFC3339Nano))
 
 		for {
 			ready, err := in.Poll()
@@ -69,12 +69,12 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		res := bytes.Compare(event, pongSysEx)
 		if res == 0 {
 			watch.Stop()
-			fmt.Printf("Pong! (%v)\n", watch.Milliseconds())
+			fmt.Printf("Pong! (%v)\n", watch.String())
 		} else {
 			fmt.Printf("Mismatch! %02x\n", event)
 		}
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Millisecond * 200)
 	}
 
 }
