@@ -88,6 +88,7 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 	}
 
 	graph := chart.Chart{
+		Title: "v0.1.0 - No UI",
 		XAxis: chart.XAxis{
 			ValueFormatter: func(v interface{}) string {
 				if vf, isFloat := v.(float64); isFloat {
