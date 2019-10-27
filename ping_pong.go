@@ -15,13 +15,7 @@ func main() {
 	portmidi.Initialize()
 
 	if len(os.Args) == 2 && os.Args[1] == "list" {
-		for id := 0; id < portmidi.CountDevices(); id++ {
-			deviceID := portmidi.DeviceID(id)
-			inf := portmidi.Info(deviceID)
-			fmt.Printf("ID: %d\tName: %s\tInput: %t\tOutput: %t\n",
-				id,
-				inf.Name, inf.IsInputAvailable, inf.IsOutputAvailable)
-		}
+		listDevices()
 		return
 	}
 
@@ -36,12 +30,24 @@ func main() {
 	}
 }
 
+func listDevices() {
+	for id := 0; id < portmidi.CountDevices(); id++ {
+		inf := portmidi.Info(portmidi.DeviceID(id))
+		fmt.Printf("ID: %d\tName: %s\tInput: %t\tOutput: %t\n",
+			id,
+			inf.Name,
+			inf.IsInputAvailable,
+			inf.IsOutputAvailable)
+	}
+}
+
 func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 	fmt.Printf("In: %v\n", portmidi.Info(inID).Name)
 	fmt.Printf("Out: %v\n", portmidi.Info(outID).Name)
 
 	in, err := portmidi.NewInputStream(inID, 1024)
 	exitOnError(err)
+	defer in.Close()
 
 	out, err := portmidi.NewOutputStream(outID, 1024, 0)
 	exitOnError(err)
@@ -53,16 +59,7 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
 		exitOnError(err)
 		fmt.Printf("%v: Ping? ", time.Now().Format(time.RFC3339Nano))
-
-		for {
-			ready, err := in.Poll()
-			exitOnError(err)
-			if ready {
-				break
-			}
-			time.Sleep(time.Microsecond)
-		}
-
+		waitForEvent(in)
 		event, err := in.ReadSysExBytes(6)
 		exitOnError(err)
 
@@ -77,7 +74,17 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 
 		time.Sleep(time.Millisecond * 200)
 	}
+}
 
+func waitForEvent(stream *portmidi.Stream) {
+	for {
+		ready, err := stream.Poll()
+		exitOnError(err)
+		if ready {
+			break
+		}
+		time.Sleep(time.Microsecond)
+	}
 }
 
 func exitOnError(err error) {
