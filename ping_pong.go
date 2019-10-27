@@ -27,10 +27,10 @@ func main() {
 		return
 	}
 
-	pingPong(portmidi.DeviceID(*inPtr),
-		portmidi.DeviceID(*outPtr),
-		*graphTitlePtr,
-		*graphFileNamePtr)
+	times, durations := pingPong(portmidi.DeviceID(*inPtr),
+		portmidi.DeviceID(*outPtr))
+
+	saveGraph(times, durations, *graphTitlePtr, *graphFileNamePtr)
 }
 
 func listDevices() {
@@ -45,9 +45,7 @@ func listDevices() {
 }
 
 func pingPong(inID portmidi.DeviceID,
-	outID portmidi.DeviceID,
-	graphTitle string,
-	graphFileName string) {
+	outID portmidi.DeviceID) (times []float64, durations []float64) {
 
 	fmt.Printf("In: %v\n", portmidi.Info(inID).Name)
 	fmt.Printf("Out: %v\n", portmidi.Info(outID).Name)
@@ -60,16 +58,12 @@ func pingPong(inID portmidi.DeviceID,
 	exitOnError(err)
 	defer out.Close()
 
-	pingSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
-
-	var times []float64
-	var durations []float64
-
 	globalStartTime := time.Now()
 
 	for time.Now().Sub(globalStartTime) < time.Second*30 {
-
 		startTime := time.Now()
+
+		pingSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
 		err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
 		exitOnError(err)
 		timestamp := time.Now().Sub(globalStartTime)
@@ -93,8 +87,7 @@ func pingPong(inID portmidi.DeviceID,
 
 		time.Sleep(time.Millisecond * 20)
 	}
-
-	saveGraph(times, durations, graphTitle, graphFileName)
+	return times, durations
 }
 
 func saveGraph(
