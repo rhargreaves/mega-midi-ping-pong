@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bradhe/stopwatch"
 	"github.com/rakyll/portmidi"
 	"github.com/wcharczuk/go-chart"
 )
@@ -59,15 +58,15 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 	var times []float64
 	var durations []float64
 
-	startTime := time.Now()
+	globalStartTime := time.Now()
 
-	for time.Now().Sub(startTime) < time.Second*30 {
+	for time.Now().Sub(globalStartTime) < time.Second*30 {
 
-		watch := stopwatch.Start()
+		startTime := time.Now()
 		err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
 		exitOnError(err)
-		duration := time.Now().Sub(startTime)
-		fmt.Printf("%v: Ping? ", duration)
+		timestamp := time.Now().Sub(globalStartTime)
+		fmt.Printf("%v: Ping? ", timestamp)
 		waitForEvent(in)
 		event, err := in.ReadSysExBytes(6)
 		exitOnError(err)
@@ -75,11 +74,11 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		pongSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x02, 0xF7, 0x00, 0x00}
 		res := bytes.Compare(event, pongSysEx)
 		if res == 0 {
-			watch.Stop()
-			fmt.Printf("Pong! (%v)\n", watch.String())
+			rtt := time.Now().Sub(startTime)
+			fmt.Printf("Pong! (%v)\n", rtt)
 
-			times = append(times, float64(duration.Seconds()))
-			durations = append(durations, float64(watch.Milliseconds()))
+			times = append(times, float64(timestamp.Seconds()))
+			durations = append(durations, float64(rtt.Nanoseconds())/1000000.0)
 
 		} else {
 			fmt.Printf("Mismatch! %02x\n", event)
@@ -96,6 +95,10 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 				}
 				return ""
 			},
+			Name: "Time (seconds)",
+		},
+		YAxis: chart.YAxis{
+			Name: "Round-trip time (ms)",
 		},
 		Series: []chart.Series{
 			chart.ContinuousSeries{
