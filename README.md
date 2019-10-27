@@ -1,6 +1,6 @@
 # Mega MIDI Ping Pong [![Actions Status](https://github.com/rhargreaves/mega-midi-ping-pong/workflows/Test/badge.svg)](https://github.com/rhargreaves/mega-midi-ping-pong/actions)
 
-Measures performance of the [Mega Drive MIDI Interface](https://github.com/rhargreaves/mega-drive-midi-interface)
+Measures performance of the [Mega Drive MIDI Interface](https://github.com/rhargreaves/mega-drive-midi-interface) by sending it the "Ping" SysEx MIDI command and timing how long it takes for the "Pong" SysEx reply to be received.
 
 ## Getting Started
 
