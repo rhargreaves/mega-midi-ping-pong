@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bradhe/stopwatch"
 	"github.com/rakyll/portmidi"
 )
 
@@ -36,8 +37,8 @@ func main() {
 }
 
 func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
-	fmt.Printf("In: %v\n", inID)
-	fmt.Printf("Out: %v\n", outID)
+	fmt.Printf("In: %v\n", portmidi.Info(inID).Name)
+	fmt.Printf("Out: %v\n", portmidi.Info(outID).Name)
 
 	in, err := portmidi.NewInputStream(inID, 1024)
 	exitOnError(err)
@@ -48,8 +49,10 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 
 	pingSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
 	for {
+		watch := stopwatch.Start()
 		err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
 		exitOnError(err)
+		fmt.Printf("Ping? ")
 
 		for {
 			ready, err := in.Poll()
@@ -62,10 +65,11 @@ func pingPong(inID portmidi.DeviceID, outID portmidi.DeviceID) {
 		event, err := in.ReadSysExBytes(6)
 		exitOnError(err)
 
-		pongSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x02, 0xF7}
+		pongSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x02, 0xF7, 0x00, 0x00}
 		res := bytes.Compare(event, pongSysEx)
 		if res == 0 {
-			fmt.Printf("Pong!\n")
+			watch.Stop()
+			fmt.Printf("Pong! (%v)\n", watch.Milliseconds())
 		} else {
 			fmt.Printf("Mismatch! %02x\n", event)
 		}
