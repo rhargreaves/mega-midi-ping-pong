@@ -9,7 +9,7 @@ run:
 	go run . $(ARGS)
 
 deps:
-	go get gitlab.com/gomidi/midi/...
-	go get gitlab.com/gomidi/portmididrv
+	go get github.com/rakyll/portmidi
+	go get github.com/bradhe/stopwatch
 
 .PHONY: all test run deps
