@@ -87,18 +87,26 @@ Total Ping+Pong Data Size = 12 bytes
 
 ## Results
 
-### v0.1.0
+Below are the results of performance tests ran against versions of the [Mega Drive MIDI Interface](https://github.com/rhargreaves/mega-drive-midi-interface)
 
-![v0.1.0 - Idle](results/v0.1.0/idle.png)
+### Current Version - v0.2.1
 
-![v0.1.0 - Idle, No UI](results/v0.1.0/no_ui.png)
+![v0.2.1 - Busy, EverDrive USB](results/v0.2.1-wip/ED-ui-busy-6-new-act-map.png)
 
-### v0.1.1-wip
+### Previous Versions
 
-![v0.1.1-wip - Idle, 4800 BPS Serial, No UI](results/v0.1.1-wip/4800_no_ui.png)
-
-### v0.1.1-wip2 / v0.2.0
+#### v0.1.1-wip2 / v0.2.0
 
 ![v0.1.1-wip2 - Idle, 4800 BPS Serial](results/v0.1.1-wip2/SER-4800-ui.png)
 
 ![v0.1.1-wip2 - Idle, EverDrive USB](results/v0.1.1-wip2/ED-ui.png)
+
+#### v0.1.1-wip
+
+![v0.1.1-wip - Idle, 4800 BPS Serial, No UI](results/v0.1.1-wip/4800_no_ui.png)
+
+#### v0.1.0
+
+![v0.1.0 - Idle](results/v0.1.0/idle.png)
+
+![v0.1.0 - Idle, No UI](results/v0.1.0/no_ui.png)
