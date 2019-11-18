@@ -66,6 +66,25 @@ Usage of ping_pong:
         Out Device ID
 ```
 
+## Theorectical Performance Limits
+
+### Serial Mode:
+
+```
+Max link speed = 4800 bps
+
+4800 bps / (8 bits + 1 Start Bit + 1 Stop Bit = 10 bits per byte) = 480 bytes per second
+
+Ping = F0 00 22 77 01 F7 = 6 bytes
+Pong = F0 00 22 77 02 F7 = 6 bytes
+------------------------------------
+Total Ping+Pong Data Size = 12 bytes
+
+480 / 12 = 40 Ping/Pong round trip per second
+
+1000ms / 40 = 1 Ping/Pong round trip per 25 ms
+```
+
 ## Results
 
 ### v0.1.0
