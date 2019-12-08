@@ -89,11 +89,17 @@ Total Ping+Pong Data Size = 12 bytes
 
 Below are the results of performance tests ran against versions of the [Mega Drive MIDI Interface](https://github.com/rhargreaves/mega-drive-midi-interface)
 
-### Current Version - v0.2.1
+### Current Version
 
-![v0.2.1 - Busy, EverDrive USB](results/v0.2.1-wip/ED-ui-busy-6-new-act-map.png)
+#### v0.3.1
+
+![v0.3.1 - Doom E1M1, EverDrive USB](results/v0.3.1/ed-doom.png)
 
 ### Previous Versions
+
+#### v0.2.1
+
+![v0.2.1 - Busy, EverDrive USB](results/v0.2.1-wip/ED-ui-busy-6-new-act-map.png)
 
 #### v0.1.1-wip2 / v0.2.0
 
