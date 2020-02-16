@@ -91,11 +91,15 @@ Below are the results of performance tests ran against versions of the [Mega Dri
 
 ### Current Version
 
+#### v0.4.2-wip
+
+![v0.4.2-wip - Doom E1M1, EverDrive USB](results/v0.4.2-wip/ed-doom.png)
+
+### Previous Versions
+
 #### v0.3.1
 
 ![v0.3.1 - Doom E1M1, EverDrive USB](results/v0.3.1/ed-doom.png)
-
-### Previous Versions
 
 #### v0.2.1
 
