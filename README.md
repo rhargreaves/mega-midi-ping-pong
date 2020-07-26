@@ -91,11 +91,17 @@ Below are the results of performance tests ran against versions of the [Mega Dri
 
 ### Current Version
 
+#### v0.6.4
+
+![v0.6.4 - EverDrive X7 USB - Idle](results/v0.6.4/ed-x7-idle-2.png)
+
+![v0.6.4 - EverDrive PRO USB - Idle](results/v0.6.4/ed-pro-idle-5.png)
+
+### Previous Versions
+
 #### v0.4.2-wip
 
 ![v0.4.2-wip - Doom E1M1, EverDrive USB](results/v0.4.2-wip/ed-doom.png)
-
-### Previous Versions
 
 #### v0.3.1
 
@@ -110,13 +116,3 @@ Below are the results of performance tests ran against versions of the [Mega Dri
 ![v0.1.1-wip2 - Idle, 4800 BPS Serial](results/v0.1.1-wip2/SER-4800-ui.png)
 
 ![v0.1.1-wip2 - Idle, EverDrive USB](results/v0.1.1-wip2/ED-ui.png)
-
-#### v0.1.1-wip
-
-![v0.1.1-wip - Idle, 4800 BPS Serial, No UI](results/v0.1.1-wip/4800_no_ui.png)
-
-#### v0.1.0
-
-![v0.1.0 - Idle](results/v0.1.0/idle.png)
-
-![v0.1.0 - Idle, No UI](results/v0.1.0/no_ui.png)
