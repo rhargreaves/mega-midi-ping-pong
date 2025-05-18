@@ -9,8 +9,7 @@ run:
 	go run . $(ARGS)
 
 deps:
-	go get github.com/rakyll/portmidi
-	go get github.com/bradhe/stopwatch
-	go get github.com/wcharczuk/go-chart
+	go mod download
+	go mod tidy
 
 .PHONY: all test run deps

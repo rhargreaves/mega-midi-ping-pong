@@ -7,12 +7,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/rakyll/portmidi"
 	"github.com/wcharczuk/go-chart"
+	"gitlab.com/gomidi/midi/reader"
+	"gitlab.com/gomidi/rtmididrv"
 )
 
 func main() {
-	portmidi.Initialize()
+	drv, err := rtmididrv.New()
+	exitOnError(err)
+	defer drv.Close()
 
 	inPtr := flag.Uint("in", 0, "In Device ID")
 	outPtr := flag.Uint("out", 0, "Out Device ID")
@@ -23,40 +26,76 @@ func main() {
 	flag.Parse()
 
 	if *listPtr {
-		listDevices()
+		listDevices(drv)
 		return
 	}
 
-	times, durations := pingPong(portmidi.DeviceID(*inPtr),
-		portmidi.DeviceID(*outPtr))
+	times, durations := pingPong(drv, int(*inPtr), int(*outPtr))
 
 	saveGraph(times, durations, *graphTitlePtr, *graphFileNamePtr)
 }
 
-func listDevices() {
-	for id := 0; id < portmidi.CountDevices(); id++ {
-		inf := portmidi.Info(portmidi.DeviceID(id))
-		fmt.Printf("ID: %d\tName: %s\tInput: %t\tOutput: %t\n",
-			id,
-			inf.Name,
-			inf.IsInputAvailable,
-			inf.IsOutputAvailable)
+func listDevices(drv *rtmididrv.Driver) {
+	ins, err := drv.Ins()
+	exitOnError(err)
+	outs, err := drv.Outs()
+	exitOnError(err)
+
+	fmt.Println("Input Devices:")
+	for i, in := range ins {
+		fmt.Printf("ID: %d\tName: %s\n", i, in.String())
+	}
+
+	fmt.Println("\nOutput Devices:")
+	for i, out := range outs {
+		fmt.Printf("ID: %d\tName: %s\n", i, out.String())
 	}
 }
 
-func pingPong(inID portmidi.DeviceID,
-	outID portmidi.DeviceID) (times []float64, durations []float64) {
+func pingPong(drv *rtmididrv.Driver, inID, outID int) (times []float64, durations []float64) {
+	ins, err := drv.Ins()
+	exitOnError(err)
+	outs, err := drv.Outs()
+	exitOnError(err)
 
-	fmt.Printf("In: %v\n", portmidi.Info(inID).Name)
-	fmt.Printf("Out: %v\n", portmidi.Info(outID).Name)
+	if inID >= len(ins) || outID >= len(outs) {
+		panic("Invalid device ID")
+	}
 
-	in, err := portmidi.NewInputStream(inID, 1024)
+	in := ins[inID]
+	out := outs[outID]
+
+	fmt.Printf("In: %v\n", in.String())
+	fmt.Printf("Out: %v\n", out.String())
+
+	err = in.Open()
 	exitOnError(err)
 	defer in.Close()
 
-	out, err := portmidi.NewOutputStream(outID, 1024, 0)
+	err = out.Open()
 	exitOnError(err)
 	defer out.Close()
+
+	sysexChan := make(chan []byte)
+	stopChan := make(chan struct{})
+
+	pongSysEx := []byte{0x00, 0x22, 0x77, 0x02}
+
+	r := reader.New(
+		reader.NoLogger(),
+		reader.SysEx(func(_ *reader.Position, b []byte) {
+			msg := make([]byte, len(b))
+			copy(msg, b)
+			sysexChan <- msg
+		}),
+	)
+	go func() {
+		err := r.ListenTo(in)
+		if err != nil {
+			close(sysexChan)
+		}
+		close(stopChan)
+	}()
 
 	globalStartTime := time.Now()
 
@@ -64,15 +103,21 @@ func pingPong(inID portmidi.DeviceID,
 		startTime := time.Now()
 
 		pingSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
-		err = out.WriteSysExBytes(portmidi.Time(), pingSysEx)
-		exitOnError(err)
+		if _, err := out.Write(pingSysEx); err != nil {
+			exitOnError(err)
+		}
 		timestamp := time.Now().Sub(globalStartTime)
 		fmt.Printf("%v: Ping? ", timestamp)
-		waitForEvent(in)
-		event, err := in.ReadSysExBytes(6)
-		exitOnError(err)
 
-		pongSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x02, 0xF7, 0x00, 0x00}
+		var event []byte
+		select {
+		case event = <-sysexChan:
+			// got a SysEx event
+		case <-time.After(2 * time.Second):
+			fmt.Println("Timeout waiting for pong SysEx")
+			continue
+		}
+
 		res := bytes.Compare(event, pongSysEx)
 		if res == 0 {
 			rtt := time.Now().Sub(startTime)
@@ -80,13 +125,13 @@ func pingPong(inID portmidi.DeviceID,
 
 			times = append(times, float64(timestamp.Seconds()))
 			durations = append(durations, float64(rtt.Nanoseconds())/1000000.0)
-
 		} else {
 			fmt.Printf("Mismatch! %02x\n", event)
 		}
 
 		time.Sleep(time.Millisecond * 20)
 	}
+	close(stopChan)
 	return times, durations
 }
 
@@ -122,17 +167,6 @@ func saveGraph(
 	defer f.Close()
 	err := graph.Render(chart.PNG, f)
 	exitOnError(err)
-}
-
-func waitForEvent(stream *portmidi.Stream) {
-	for {
-		ready, err := stream.Poll()
-		exitOnError(err)
-		if ready {
-			break
-		}
-		time.Sleep(time.Microsecond)
-	}
 }
 
 func exitOnError(err error) {
