@@ -1,15 +1,17 @@
-ARGS :=
+.PHONY: install test lint clean verify
 
-all: test
+install:
+	python3 -m pip install -r requirements.txt
 
 test:
-	go test ./...
+	python3 -m unittest test_ping_pong.py
 
-run:
-	go run . $(ARGS)
+lint:
+	flake8 ping_pong.py test_ping_pong.py
+	black --check ping_pong.py test_ping_pong.py
 
-deps:
-	go mod download
-	go mod tidy
+format:
+	black ping_pong.py test_ping_pong.py
 
-.PHONY: all test run deps
+clean:
+	rm -rf __pycache__
