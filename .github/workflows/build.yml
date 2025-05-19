@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install libportmidi-dev
+          sudo apt-get -y install libportmidi-dev libasound2-dev
 
       - name: Test
         run: |
