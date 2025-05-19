@@ -3,22 +3,18 @@ install:
 .PHONY: install
 
 test:
-	python3 -m unittest test_ping_pong.py
+	PYTHONPATH=. python3 test/test_ping_pong.py
 .PHONY: test
 
 lint:
-	flake8 ping_pong.py test_ping_pong.py
-	black --check ping_pong.py test_ping_pong.py
+	flake8 ping_pong/*.py test/*.py
+	black --check ping_pong/*.py test/*.py
 .PHONY: lint
 
 format:
-	black ping_pong.py test_ping_pong.py
+	black ping_pong/*.py test/*.py
 .PHONY: format
 
 clean:
 	rm -rf __pycache__
 .PHONY: clean
-
-run:
-	python3 ping_pong.py
-.PHONY: run
