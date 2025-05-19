@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import logging
 import argparse
 import time
@@ -145,7 +143,3 @@ def main():
 
     times, durations = ping_pong(args.in_port, args.out_port, args.count)
     save_graph(times, durations, args.graph_title, args.graph_filename)
-
-
-if __name__ == "__main__":
-    main()
