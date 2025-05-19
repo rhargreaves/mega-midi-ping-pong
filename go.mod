@@ -1,6 +1,8 @@
 module github.com/rhargreaves/mega-midi-ping-pong
 
-go 1.23.1
+go 1.23.0
+
+toolchain go1.23.1
 
 require (
 	github.com/wcharczuk/go-chart v2.0.1+incompatible

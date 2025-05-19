@@ -22,6 +22,7 @@ func main() {
 	graphTitlePtr := flag.String("graph-title", "", "Graph Title")
 	graphFileNamePtr := flag.String("graph-filename", "results/output.png", "Graph Filename")
 	listPtr := flag.Bool("list", false, "List Devices")
+	countPtr := flag.Int("count", 0, "Number of ping-pongs to perform (0 for unlimited)")
 
 	flag.Parse()
 
@@ -30,7 +31,7 @@ func main() {
 		return
 	}
 
-	times, durations := pingPong(drv, int(*inPtr), int(*outPtr))
+	times, durations := pingPong(drv, int(*inPtr), int(*outPtr), *countPtr)
 
 	saveGraph(times, durations, *graphTitlePtr, *graphFileNamePtr)
 }
@@ -52,7 +53,7 @@ func listDevices(drv *rtmididrv.Driver) {
 	}
 }
 
-func pingPong(drv *rtmididrv.Driver, inID, outID int) (times []float64, durations []float64) {
+func pingPong(drv *rtmididrv.Driver, inID, outID int, count int) (times []float64, durations []float64) {
 	ins, err := drv.Ins()
 	exitOnError(err)
 	outs, err := drv.Outs()
@@ -79,8 +80,6 @@ func pingPong(drv *rtmididrv.Driver, inID, outID int) (times []float64, duration
 	sysexChan := make(chan []byte)
 	stopChan := make(chan struct{})
 
-	pongSysEx := []byte{0x00, 0x22, 0x77, 0x02}
-
 	r := reader.New(
 		reader.NoLogger(),
 		reader.SysEx(func(_ *reader.Position, b []byte) {
@@ -94,16 +93,17 @@ func pingPong(drv *rtmididrv.Driver, inID, outID int) (times []float64, duration
 		if err != nil {
 			close(sysexChan)
 		}
-		close(stopChan)
+		<-stopChan
 	}()
 
 	globalStartTime := time.Now()
+	pingCount := 0
 
-	for time.Now().Sub(globalStartTime) < time.Second*30 {
+	for (count == 0 || pingCount < count) && time.Now().Sub(globalStartTime) < time.Second*30 {
 		startTime := time.Now()
 
-		pingSysEx := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
-		if _, err := out.Write(pingSysEx); err != nil {
+		pingMessage := []byte{0xF0, 0x00, 0x22, 0x77, 0x01, 0xF7}
+		if _, err := out.Write(pingMessage); err != nil {
 			exitOnError(err)
 		}
 		timestamp := time.Now().Sub(globalStartTime)
@@ -118,13 +118,15 @@ func pingPong(drv *rtmididrv.Driver, inID, outID int) (times []float64, duration
 			continue
 		}
 
-		res := bytes.Compare(event, pongSysEx)
+		pongSysex := []byte{0x00, 0x22, 0x77, 0x02}
+		res := bytes.Compare(event, pongSysex)
 		if res == 0 {
 			rtt := time.Now().Sub(startTime)
 			fmt.Printf("Pong! (%v)\n", rtt)
 
 			times = append(times, float64(timestamp.Seconds()))
 			durations = append(durations, float64(rtt.Nanoseconds())/1000000.0)
+			pingCount++
 		} else {
 			fmt.Printf("Mismatch! %02x\n", event)
 		}

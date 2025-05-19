@@ -3,7 +3,7 @@ ARGS :=
 all: test
 
 test:
-	go test
+	go test ./...
 
 run:
 	go run . $(ARGS)
