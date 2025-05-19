@@ -6,64 +6,68 @@ Measures performance of the [Mega Drive MIDI Interface](https://github.com/rharg
 
 ### Requirements
 
-- Golang 1.11
+- Python 3.13
 
 ### Usage
 
-1. Build:
+1. Install dependencies:
 
 ```sh
-$ make
+$ make install
 ```
 
 2. List MIDI devices:
 
 ```sh
-$ go run ping_pong.go -list
+$ python3 -m ping_pong --list
 
-ID: 0   Name: IAC Driver IAC Bus 1      Input: true     Output: false
-ID: 1   Name: IAC Driver IAC Bus 2      Input: true     Output: false
-ID: 2   Name: IAC Driver IAC Bus 1      Input: false    Output: true
-ID: 3   Name: IAC Driver IAC Bus 2      Input: false    Output: true
+Input Devices:
+IAC Driver Bus 1
+IAC Driver Bus 2
+
+Output Devices:
+IAC Driver Bus 1
+IAC Driver Bus 2
 ```
 
 3. Run with correct device IDs specified:
 
 ```sh
-# go run ping_pong.go -in <input_device> -out <output_device>
-
-$ go run ping_pong.go -in 0 -out 3
-
-In: IAC Driver IAC Bus 1
-Out: IAC Driver IAC Bus 2
-2019-10-27T19:14:43.923466Z: Ping? Pong! (3.396952ms)
-2019-10-27T19:14:44.12993Z: Ping? Pong! (20.398833ms)
-2019-10-27T19:14:44.353178Z: Ping? Pong! (20.760178ms)
-2019-10-27T19:14:44.577685Z: Ping? Pong! (19.596641ms)
-2019-10-27T19:14:44.80165Z: Ping? Pong! (3.319763ms)
-2019-10-27T19:14:45.00694Z: Ping? Pong! (5.519903ms)
-2019-10-27T19:14:45.216816Z: Ping? Pong! (19.197244ms)
-2019-10-27T19:14:45.440896Z: Ping? Pong! (18.86333ms)
-2019-10-27T19:14:45.663128Z: Ping? Pong! (19.8471ms)
-...
+$ python3 -m ping_pong \
+      --in "IAC Driver Bus 2" \
+      --out "IAC Driver Bus 1" \
+      --count 10
+0.102962: Ping? Pong! (18.665ms)
+0.121661: Ping? Pong! (16.917ms)
+0.138600: Ping? Pong! (15.382ms)
+0.154004: Ping? Pong! (15.733ms)
+0.169767: Ping? Pong! (16.869ms)
+0.186669: Ping? Pong! (20.831ms)
+0.207532: Ping? Pong! (11.515ms)
+0.219075: Ping? Pong! (14.223ms)
+0.233325: Ping? Pong! (15.945ms)
+0.249300: Ping? Pong! (17.479ms)
 ```
 
 ### Help
 
 ```sh
-$ go run ping_pong.go -h
+$ python3 -m ping_pong -h
+usage: __main__.py [-h] [--in IN_PORT] [--out OUT_PORT] [--graph-title GRAPH_TITLE]
+                   [--graph-filename GRAPH_FILENAME] [--list] [--count COUNT]
 
-Usage of ping_pong:
-  -graph-filename string
-        Graph Filename (default "results/output.png")
-  -graph-title string
-        Graph Title
-  -in uint
-        In Device ID
-  -list
-        List Devices
-  -out uint
-        Out Device ID
+MIDI Ping-Pong Test
+
+options:
+  -h, --help            show this help message and exit
+  --in IN_PORT          Input MIDI port name
+  --out OUT_PORT        Output MIDI port name
+  --graph-title GRAPH_TITLE
+                        Graph title
+  --graph-filename GRAPH_FILENAME
+                        Graph filename
+  --list                List MIDI devices
+  --count COUNT         Number of ping-pongs to perform (0 for unlimited)
 ```
 
 ## Theorectical Performance Limits
