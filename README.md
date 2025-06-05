@@ -1,5 +1,10 @@
 # Mega MIDI Ping Pong [![Actions Status](https://github.com/rhargreaves/mega-midi-ping-pong/workflows/Test/badge.svg)](https://github.com/rhargreaves/mega-midi-ping-pong/actions)
 
+> [!NOTE]  
+> This project has been deprecated in favour of the [Mega Drive MIDI Interface CLI](https://github.com/rhargreaves/mdmi-cli) which offers performance testing functionality as well as other helpful operations
+
+---
+
 Measures performance of the [Mega Drive MIDI Interface](https://github.com/rhargreaves/mega-drive-midi-interface) by sending it the "Ping" SysEx MIDI command and timing how long it takes for the "Pong" SysEx reply to be received.
 
 ## Getting Started
